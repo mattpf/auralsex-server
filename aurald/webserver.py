@@ -30,7 +30,6 @@ class ASHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         parts = urlparse.urlparse(self.path)
         self.path = parts[2]
         self.query = parse_qs(parts[4])
-        self.post = parse_qs(self.rfile.read().strip())
         
         method(self)
     
