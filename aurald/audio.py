@@ -76,6 +76,8 @@ class AudioPlayer(threading.Thread):
         if self.is_playing and len(self.play_queue) > 0:
             self.current_index = (self.current_index + 1) % len(self.play_queue)
             self.play(self.play_queue[self.current_index])
+        else:
+            self.is_playing = False
     
     def shutdown(self):
         self.running = False
@@ -132,4 +134,7 @@ class AudioPlayer(threading.Thread):
     
     def remove_from_queue(self, filename):
         if filename in self.play_queue:
+            index = self.play_queue.index(filename)
             self.play_queue.remove(filename)
+            if index <= self.current_index and index > 0:
+                index -= 1
