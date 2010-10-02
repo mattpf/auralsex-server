@@ -1,35 +1,26 @@
-import audiere
-
-import webserver
+from subprocess import Popen, PIPE, STDOUT
 
 class AudioPlayer:
     player = None
     current_file = None
     volume = 1.0
 
-    def __init__(self):
-        self.player = audiere.open_device()
-
     def play(self, filename):
         """Plays the given filename, stopping anything currently playing"""
         if self.current_file is not None:
             self.stop()
-        
-        self.current_file = self.player.open_file(filename, True)
-        self.current_file.volume = 1.0
-        self.current_file.play()
-        print self.current_file
+    
+        self.current_file = Popen(["mplayer", "-input", "nodefault-bindings", "-noconfig", "all", "-slave", "-quiet", filename], stdin=PIPE)
     
     def pause(self):
         if self.current_file is not None:
-            self.current_file.pause()
+            self.current_file.stdin.write("pause\n")
     
     def stop(self):
         if self.current_file is not None:
-            del self.current_file
+            self.current_file.communicate("stop\n")
+            self.current_file = None
     
     def reset(self):
         if self.current_file is not None:
-            self.current_file.reset()
-    
-
+            self.current_file.stdin.write("seek 0 2\n")
