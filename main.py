@@ -6,7 +6,12 @@ import webglue
 def main():
     player = audio.AudioPlayer()
     webglue.bind(player)
-    webserver.serve()
+    try:
+        print "AuralSex ready."
+        webserver.serve()
+    except KeyboardInterrupt:
+        player.shutdown()
+        print "Goodbye."
 
 if __name__ == '__main__':
     main()
