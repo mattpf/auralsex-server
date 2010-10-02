@@ -34,10 +34,12 @@ class AudioPlayer(threading.Thread):
         self.communicate("pausing_keep_force get_property path")
         while self.running:
             line = self.player.stdout.readline().strip()
+            # HACK
             if self.just_started:
                 self.just_started = False
-                time.sleep(3)
+                time.sleep(3) # ew.
                 if line[0:8] == 'ANS_path':
+                    # HACK HACK HACK
                     self.communicate("pausing_keep_force get_property path")
                 continue
             try:
@@ -52,21 +54,28 @@ class AudioPlayer(threading.Thread):
                 
                 self.communicate("pausing_keep_force get_property path")
                 if value == '(null)':
-                    self.current_file = None
-                    if self.is_playing and len(self.play_queue) > 0:
-                        self.current_index = (self.current_index + 1) % len(self.play_queue)
-                        self.play(self.play_queue[self.current_index])
+                    self.on_stopped()
                 else:
-                    if self.current_file != value:
-                        self.current_file = value
-                        try:
-                            self.current_index = self.play_queue.index(value)
-                        except IndexError:
-                            self.current_index = -1
+                    self.on_changed_file(value)
             else:
                 continue
             
             time.sleep(1.0)
+    
+    # I don't think this should ever actually happen except for stopped -> playing
+    def on_changed_file(self, new_file):
+        if self.current_file != new_file:
+            self.current_file = new_file
+            try:
+                self.current_index = self.play_queue.index(new_file)
+            except IndexError:
+                self.current_index = -1
+    
+    def on_stopped(self):
+        self.current_file = None
+        if self.is_playing and len(self.play_queue) > 0:
+            self.current_index = (self.current_index + 1) % len(self.play_queue)
+            self.play(self.play_queue[self.current_index])
     
     def shutdown(self):
         self.running = False
