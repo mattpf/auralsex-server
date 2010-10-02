@@ -74,8 +74,7 @@ class AudioPlayer(threading.Thread):
     def on_stopped(self):
         self.current_file = None
         if self.is_playing and len(self.play_queue) > 0:
-            self.current_index = (self.current_index + 1) % len(self.play_queue)
-            self.play(self.play_queue[self.current_index])
+            self.skip()
         else:
             self.is_playing = False
     
@@ -121,6 +120,18 @@ class AudioPlayer(threading.Thread):
     def reset(self):
         if self.current_file is not None:
             self.communicate("seek 0 2")
+    
+    def skip(self):
+        if len(self.play_queue) > 0:
+            self.current_index = (self.current_index + 1) % len(self.play_queue)
+            self.play(self.play_queue[self.current_index])
+    
+    def back(self):
+        if len(self.play_queue) > 0:
+            self.current_index -= 1
+            if self.current_index < 0:
+                self.current_index = len(self.play_queue) - 1
+            self.play(self.play_queue[self.current_index])
     
     def clear_queue(self):
         self.play_queue = []

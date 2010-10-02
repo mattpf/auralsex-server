@@ -43,6 +43,14 @@ def handle_remove(request):
     if filename in player.play_queue:
         player.remove_from_queue(filename)
 
+def handle_skip(request):
+    player.skip()
+    request.output("ok")
+    
+def handle_back(request):
+    player.back()
+    request.output("ok")
+
 def bind(new_player):
     global player
     player = new_player
@@ -53,3 +61,5 @@ def bind(new_player):
     webserver.set_get_handler("/add", handle_add)
     webserver.set_get_handler("/clear", handle_clear)
     webserver.set_get_handler("/remove", handle_remove)
+    webserver.set_get_handler("/skip", handle_skip)
+    webserver.set_get_handler("/back", handle_back)
