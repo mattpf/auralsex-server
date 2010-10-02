@@ -4,8 +4,10 @@ import webserver
 player = None
 
 def handle_play(request):
-    print "Playing '%s'" % request.query['filename'][0]
-    player.play(request.query['filename'][0])
+    if 'filename' in request.query:
+        player.play(request.query['filename'][0])
+    else:
+        player.play()
     request.output("ok")
 
 def handle_pause(request):
@@ -20,6 +22,27 @@ def handle_reset(request):
     player.reset()
     request.output("ok")
 
+def handle_add(request):
+    if 'filename' not in request.query:
+        request.output('missing filename', response_code=400)
+        return
+    if player.append_to_queue(request.query['filename'][0]):
+        request.output('ok')
+    else:
+        request.output('music not found', response_code=404)
+
+def handle_clear(request):
+    player.clear_queue()
+    request.output("ok")
+
+def handle_remove(request):
+    if 'filename' not in request.query:
+        request.output('missing filename', response_code=400)
+        return
+    filename = request.query['filename'][0]
+    if filename in player.play_queue:
+        player.remove_from_queue(filename)
+
 def bind(new_player):
     global player
     player = new_player
@@ -27,3 +50,6 @@ def bind(new_player):
     webserver.set_get_handler("/pause", handle_pause)
     webserver.set_get_handler("/stop", handle_stop)
     webserver.set_get_handler("/reset", handle_reset)
+    webserver.set_get_handler("/add", handle_add)
+    webserver.set_get_handler("/clear", handle_clear)
+    webserver.set_get_handler("/remove", handle_remove)
