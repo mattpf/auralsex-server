@@ -42,6 +42,9 @@ def handle_remove(request):
     filename = request.query['filename'][0]
     if filename in player.play_queue:
         player.remove_from_queue(filename)
+        request.output("ok")
+    else:
+        request.output("already missing", response_code=410)
 
 def handle_skip(request):
     player.skip()
