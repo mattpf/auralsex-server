@@ -57,6 +57,9 @@ def handle_back(request):
 def list_tracks(request):
     request.output("\n".join(player.play_queue))
 
+def current_index(request):
+    request.output(str(player.current_index))
+
 def bind(new_player):
     global player
     player = new_player
@@ -70,3 +73,4 @@ def bind(new_player):
     webserver.set_get_handler("/skip", handle_skip)
     webserver.set_get_handler("/back", handle_back)
     webserver.set_get_handler("/list", list_tracks)
+    webserver.set_get_handler("/current", current_index)
