@@ -32,6 +32,7 @@ class AudioPlayer(threading.Thread):
         buff = ''
         sleep = True
         # HACK: So we don't hang the first time.
+        self.set_volume(self.volume)
         self.communicate("pausing_keep_force get_property path")
         while self.running:
             line = self.player.stdout.readline().strip()
@@ -166,5 +167,5 @@ class AudioPlayer(threading.Thread):
         if volume > 10:
             volume = 10
         self.volume = volume
-        mplayer_volume = volume * 5 # Scale from 0 - 50 (mplayer goes to 100 but sounds crap)
+        mplayer_volume = volume * 8 # Scale from 0 - 80 (mplayer goes to 100 but sounds crap)
         self.communicate("pausing_keep_force volume %s 1" % mplayer_volume)
