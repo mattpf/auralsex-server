@@ -63,6 +63,19 @@ def list_tracks(request):
 def current_index(request):
     request.output(str(player.current_index))
 
+def current_volume(request):
+    request.output(str(player.volume))
+
+def handle_volume(request):
+    if 'volume' in request.query:
+        try:
+            volume = int(request.query['volume'][0])
+        except:
+            request.output("bad volume", response_code=400)
+            return
+        player.set_volume(volume)
+    request.output(str(player.volume))
+
 def bind(new_player):
     global player
     player = new_player
@@ -77,3 +90,4 @@ def bind(new_player):
     webserver.set_get_handler("/back", handle_back)
     webserver.set_get_handler("/list", list_tracks)
     webserver.set_get_handler("/current", current_index)
+    webserver.set_get_handler("/volume", handle_volume)

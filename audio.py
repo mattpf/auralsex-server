@@ -14,6 +14,7 @@ class AudioPlayer(threading.Thread):
     just_started = False # HACK: mplayer delays slightly. Wait for it to actually load the file.
     send_lock = None
     running = True
+    volume = 5
     
     def __init__(self):
         threading.Thread.__init__(self, name="mplayer")
@@ -158,3 +159,12 @@ class AudioPlayer(threading.Thread):
             self.play_queue.remove(filename)
             if index <= self.current_index and index > 0:
                 index -= 1
+    
+    def set_volume(self, volume):
+        if volume < 0:
+            volume = 0
+        if volume > 10:
+            volume = 10
+        self.volume = volume
+        mplayer_volume = volume * 5 # Scale from 0 - 50 (mplayer goes to 100 but sounds crap)
+        self.communicate("pausing_keep_force volume %s 1" % mplayer_volume)
