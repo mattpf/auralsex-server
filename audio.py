@@ -15,10 +15,12 @@ class AudioPlayer(threading.Thread):
     send_lock = None
     running = True
     volume = 5
+    prefix = ''
     
-    def __init__(self):
+    def __init__(self, prefix):
         threading.Thread.__init__(self, name="mplayer")
         self.daemon = True
+        self.prefix = prefix
         self.start()
     
     def __del__(self):
@@ -58,7 +60,9 @@ class AudioPlayer(threading.Thread):
                 if value == '(null)':
                     self.on_stopped()
                 else:
-                    self.on_changed_file(value)
+                    new_file = value[len(self.prefix)+1:]
+                    if self.current_file != new_file:
+                        self.on_changed_file(new_file)
             else:
                 continue
             
@@ -66,12 +70,11 @@ class AudioPlayer(threading.Thread):
     
     # I don't think this should ever actually happen except for stopped -> playing
     def on_changed_file(self, new_file):
-        if self.current_file != new_file:
-            self.current_file = new_file
-            try:
-                self.current_index = self.play_queue.index(new_file)
-            except IndexError:
-                self.current_index = -1
+        self.current_file = new_file
+        try:
+            self.current_index = self.play_queue.index(new_file)
+        except IndexError:
+            self.current_index = -1
     
     def on_stopped(self):
         self.current_file = None
@@ -108,7 +111,7 @@ class AudioPlayer(threading.Thread):
         self.current_file = filename
         self.just_started = True
         self.is_playing = True
-        self.communicate("loadfile \"%s\"" % filename)
+        self.communicate("loadfile \"%s/%s\"" % (self.prefix, filename))
     
     def pause(self):
         if self.current_file is not None:
@@ -148,7 +151,7 @@ class AudioPlayer(threading.Thread):
         self.play_queue = []
     
     def append_to_queue(self, filename):
-        if os.path.isfile(filename):
+        if os.path.isfile('%s/%s' % (self.prefix, filename)):
             self.play_queue.append(filename)
             return True
         else:

@@ -2,9 +2,10 @@
 import webserver
 import audio
 import webglue
+import sys
 
 def main():
-    player = audio.AudioPlayer()
+    player = audio.AudioPlayer(sys.argv[1])
     webglue.bind(player)
     try:
         print "AuralSex ready."
