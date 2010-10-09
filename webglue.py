@@ -47,8 +47,11 @@ def handle_remove(request):
         request.output("already missing", response_code=410)
 
 def handle_skip(request):
-    player.skip()
-    request.output("ok")
+    try:
+        player.skip(int(request.query['to'][0]) if 'to' in request.query else None)
+        request.output("ok")
+    except TypeError:
+        request.output("to what, exactly?", response_code=400)
     
 def handle_back(request):
     player.back()

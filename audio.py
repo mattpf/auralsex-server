@@ -121,10 +121,19 @@ class AudioPlayer(threading.Thread):
         if self.current_file is not None:
             self.communicate("seek 0 2")
     
-    def skip(self):
-        if len(self.play_queue) > 0:
-            self.current_index = (self.current_index + 1) % len(self.play_queue)
-            self.play(self.play_queue[self.current_index])
+    def skip(self, to=None):
+        if to is None:
+            if len(self.play_queue) > 0:
+                self.current_index = (self.current_index + 1) % len(self.play_queue)
+                self.play(self.play_queue[self.current_index])
+            return True
+        else:
+            if to < len(self.play_queue):
+                self.current_index = to
+                self.play(self.play_queue[self.current_index])
+                return True
+            else:
+                return False
     
     def back(self):
         if len(self.play_queue) > 0:
