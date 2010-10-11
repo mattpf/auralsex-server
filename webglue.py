@@ -61,7 +61,10 @@ def list_tracks(request):
     request.output("\n".join(player.play_queue))
 
 def current_index(request):
-    request.output(str(player.current_index))
+    if player.on_queue:
+        request.output(str(player.current_index))
+    else:
+        request.output("-1")
 
 def current_file(request):
     request.output(player.current_file)
