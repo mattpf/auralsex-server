@@ -63,6 +63,9 @@ def list_tracks(request):
 def current_index(request):
     request.output(str(player.current_index))
 
+def current_file(request):
+    request.output(player.current_file)
+
 def current_volume(request):
     request.output(str(player.volume))
 
@@ -90,4 +93,5 @@ def bind(new_player):
     webserver.set_get_handler("/back", handle_back)
     webserver.set_get_handler("/list", list_tracks)
     webserver.set_get_handler("/current", current_index)
+    webserver.set_get_handler("/current_file", current_file)
     webserver.set_get_handler("/volume", handle_volume)
