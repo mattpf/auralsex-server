@@ -16,6 +16,8 @@ class AudioPlayer(threading.Thread):
     running = True
     volume = 5
     prefix = ''
+    current_pos = 0
+    on_queue = True
     
     def __init__(self, prefix):
         threading.Thread.__init__(self, name="mplayer")
@@ -32,30 +34,25 @@ class AudioPlayer(threading.Thread):
         self.send_lock = threading.Lock()
         self.player = Popen(["mplayer", "-input", "nodefault-bindings", "-noconfig", "all", "-slave", "-quiet", "-idle"], stdin=PIPE, stdout=PIPE, stderr=devnull)
         buff = ''
-        sleep = True
         # HACK: So we don't hang the first time.
-        self.set_volume(self.volume)
         self.communicate("pausing_keep_force get_property path")
         while self.running:
             line = self.player.stdout.readline().strip()
-            # HACK
-            if self.just_started:
-                self.just_started = False
-                time.sleep(3) # ew.
-                if line[0:8] == 'ANS_path':
-                    # HACK HACK HACK
-                    self.communicate("pausing_keep_force get_property path")
-                continue
             try:
                 key, value = line.split('=', 1)
             except:
-                sleep = False
                 continue
-            
+            # HACK
+            if self.just_started:
+                if key == 'ANS_path':
+                    # HACK HACK HACK
+                    self.communicate("pausing_keep_force get_property path")
+                    if value == '(null)':
+                        continue
+            self.just_started = False
             if key == 'ANS_path':        
                 # This is useful to check if we're playing anything, and if so, what that might be.
                 # It also always returns a line of some form, so readline won't hang.
-                
                 self.communicate("pausing_keep_force get_property path")
                 if value == '(null)':
                     self.on_stopped()
@@ -66,15 +63,16 @@ class AudioPlayer(threading.Thread):
             else:
                 continue
             
-            time.sleep(1.0)
+            time.sleep(0.5)
     
-    # I don't think this should ever actually happen except for stopped -> playing
     def on_changed_file(self, new_file):
         self.current_file = new_file
+        self.set_volume(self.volume)
         try:
+            self.on_queue = True
             self.current_index = self.play_queue.index(new_file)
-        except IndexError:
-            self.current_index = -1
+        except ValueError:
+            self.on_queue = False
     
     def on_stopped(self):
         self.current_file = None
@@ -107,8 +105,10 @@ class AudioPlayer(threading.Thread):
         if filename is None:
             if len(self.play_queue) == 0:
                 return False
+            self.on_queue = True
             filename = self.play_queue[self.current_index]
-        self.current_file = filename
+        else:
+            self.on_queue = False
         self.just_started = True
         self.is_playing = True
         self.communicate("loadfile \"%s/%s\"" % (self.prefix, filename))
@@ -130,12 +130,12 @@ class AudioPlayer(threading.Thread):
         if to is None:
             if len(self.play_queue) > 0:
                 self.current_index = (self.current_index + 1) % len(self.play_queue)
-                self.play(self.play_queue[self.current_index])
+                self.play()
             return True
         else:
             if to < len(self.play_queue):
                 self.current_index = to
-                self.play(self.play_queue[self.current_index])
+                self.play()
                 return True
             else:
                 return False
@@ -145,7 +145,7 @@ class AudioPlayer(threading.Thread):
             self.current_index -= 1
             if self.current_index < 0:
                 self.current_index = len(self.play_queue) - 1
-            self.play(self.play_queue[self.current_index])
+            self.play()
     
     def clear_queue(self):
         self.play_queue = []
@@ -169,6 +169,7 @@ class AudioPlayer(threading.Thread):
             volume = 0
         if volume > 10:
             volume = 10
+        print "Changing volume from %s to %s." % (self.volume, volume)
         self.volume = volume
         mplayer_volume = volume * 8 # Scale from 0 - 80 (mplayer goes to 100 but sounds crap)
         self.communicate("pausing_keep_force volume %s 1" % mplayer_volume)
