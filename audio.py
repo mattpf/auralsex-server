@@ -19,10 +19,12 @@ class AudioPlayer(threading.Thread):
     current_pos = 0
     on_queue = True
     
-    def __init__(self, prefix):
+    def __init__(self, prefix, save = None):
         threading.Thread.__init__(self, name="mplayer")
         self.daemon = True
         self.prefix = prefix
+        self.save = save
+        self.load_queue()
         self.start()
     
     def __del__(self):
@@ -32,7 +34,7 @@ class AudioPlayer(threading.Thread):
         """This whole function is now a massive hack. Fuck mplayer."""
         devnull = open('/dev/null','w')
         self.send_lock = threading.Lock()
-        self.player = Popen(["mplayer", "-input", "nodefault-bindings", "-noconfig", "all", "-slave", "-quiet", "-idle"], stdin=PIPE, stdout=PIPE, stderr=devnull)
+        self.player = Popen(["mplayer", "-input", "nodefault-bindings", "-noconfig", "all", "-slave", "-quiet", "-idle", "-af", "volnorm"], stdin=PIPE, stdout=PIPE, stderr=devnull)
         buff = ''
         # HACK: So we don't hang the first time.
         self.communicate("pausing_keep_force get_property path")
@@ -149,10 +151,12 @@ class AudioPlayer(threading.Thread):
     
     def clear_queue(self):
         self.play_queue = []
+        self.save_queue()
     
     def append_to_queue(self, filename):
         if os.path.isfile('%s/%s' % (self.prefix, filename)):
             self.play_queue.append(filename)
+            self.save_queue()
             return True
         else:
             return False
@@ -161,6 +165,7 @@ class AudioPlayer(threading.Thread):
         if filename in self.play_queue:
             index = self.play_queue.index(filename)
             self.play_queue.remove(filename)
+            self.save_queue()
             if index <= self.current_index and index > 0:
                 index -= 1
     
@@ -173,3 +178,23 @@ class AudioPlayer(threading.Thread):
         self.volume = volume
         mplayer_volume = volume * 8 # Scale from 0 - 80 (mplayer goes to 100 but sounds crap)
         self.communicate("pausing_keep_force volume %s 1" % mplayer_volume)
+    
+    def save_queue(self):
+        if self.save is None:
+            return
+        try:
+            f = open(self.save, 'w')
+            f.write('\n'.join(self.play_queue))
+            f.close()
+        except IOError:
+            pass
+    
+    def load_queue(self):
+        if self.save is None:
+            return
+        try:
+            f = open(self.save, 'r')
+            self.play_queue = [x for x in f.read().split('\n') if x != '']
+            f.close()
+        except:
+            pass

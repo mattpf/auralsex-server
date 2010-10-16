@@ -3,9 +3,10 @@ import webserver
 import audio
 import webglue
 import sys
+import os.path
 
 def main():
-    player = audio.AudioPlayer(sys.argv[1])
+    player = audio.AudioPlayer(sys.argv[1], os.path.dirname(__file__) + "/queue.txt")
     webglue.bind(player)
     try:
         print "AuralSex ready."
