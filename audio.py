@@ -34,7 +34,7 @@ class AudioPlayer(threading.Thread):
         """This whole function is now a massive hack. Fuck mplayer."""
         devnull = open('/dev/null','w')
         self.send_lock = threading.Lock()
-        self.player = Popen(["mplayer", "-input", "nodefault-bindings", "-noconfig", "all", "-slave", "-quiet", "-idle", "-af", "volnorm"], stdin=PIPE, stdout=PIPE, stderr=devnull)
+        self.player = Popen(["mplayer", "-input", "nodefault-bindings", "-noconfig", "all", "-slave", "-quiet", "-idle"], stdin=PIPE, stdout=PIPE, stderr=devnull)
         buff = ''
         # HACK: So we don't hang the first time.
         self.communicate("pausing_keep_force get_property path")
@@ -161,10 +161,9 @@ class AudioPlayer(threading.Thread):
         else:
             return False
     
-    def remove_from_queue(self, filename):
-        if filename in self.play_queue:
-            index = self.play_queue.index(filename)
-            self.play_queue.remove(filename)
+    def remove_from_queue(self, index):
+        if index < len(self.play_queue):
+            del self.play_queue[index]
             self.save_queue()
             if index <= self.current_index and index > 0:
                 index -= 1

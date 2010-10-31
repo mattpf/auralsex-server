@@ -36,15 +36,15 @@ def handle_clear(request):
     request.output("ok")
 
 def handle_remove(request):
-    if 'filename' not in request.query:
-        request.output('missing filename', response_code=400)
-        return
-    filename = request.query['filename'][0]
-    if filename in player.play_queue:
-        player.remove_from_queue(filename)
-        request.output("ok")
+    if 'filename' in request.query:
+        request.output("removal by filename is deprecated.", response_code=400)
     else:
-        request.output("already missing", response_code=410)
+        indexes = [int(x) for x in request.query['index'][0].split(',')]
+        indexes.sort()
+        indexes.reverse()
+        for index in indexes:
+            player.remove_from_queue(index)
+        request.output("ok")
 
 def handle_skip(request):
     try:
