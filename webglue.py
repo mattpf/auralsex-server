@@ -67,7 +67,7 @@ def current_index(request):
         request.output("-1")
 
 def current_file(request):
-    request.output(player.current_file)
+    request.output(str(player.current_file))
 
 def current_volume(request):
     request.output(str(player.volume))
