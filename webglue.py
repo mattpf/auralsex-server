@@ -82,6 +82,15 @@ def handle_volume(request):
         player.set_volume(volume)
     request.output(str(player.volume))
 
+def handle_state(request):
+    state = 'stopped'
+    if player.is_playing:
+        if player.is_paused:
+            state = 'paused'
+        else:
+            state = 'playing'
+    request.output(state)
+
 def bind(new_player):
     global player
     player = new_player
@@ -98,3 +107,4 @@ def bind(new_player):
     webserver.set_get_handler("/current", current_index)
     webserver.set_get_handler("/current_file", current_file)
     webserver.set_get_handler("/volume", handle_volume)
+    webserver.set_get_handler("/state", handle_state)

@@ -11,6 +11,7 @@ class AudioPlayer(threading.Thread):
     current_index = 0
     looping = True
     is_playing = False
+    is_paused = False
     just_started = False # HACK: mplayer delays slightly. Wait for it to actually load the file.
     send_lock = None
     running = True
@@ -113,19 +114,23 @@ class AudioPlayer(threading.Thread):
             self.on_queue = False
         self.just_started = True
         self.is_playing = True
+        self.is_paused = False
         self.communicate("loadfile \"%s/%s\"" % (self.prefix, filename))
     
     def pause(self):
         if self.current_file is not None:
+            self.is_paused = True
             self.communicate("pause")
     
     def stop(self):
-        is_playing = False
+        self.is_playing = False
+        self.is_paused = False
         self.communicate("stop")
         self.current_file = None
     
     def reset(self):
         if self.current_file is not None:
+            self.is_paused = False
             self.communicate("seek 0 2")
     
     def skip(self, to=None):
