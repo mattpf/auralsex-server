@@ -26,10 +26,9 @@ def handle_add(request):
     if 'filename' not in request.query:
         request.output('missing filename', response_code=400)
         return
-    if player.append_to_queue(request.query['filename'][0]):
-        request.output('ok')
-    else:
-        request.output('music not found', response_code=404)
+    for filename in request.query['filename']:
+        player.append_to_queue(filename)
+    request.output('ok')
 
 def handle_clear(request):
     player.clear_queue()
