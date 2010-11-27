@@ -119,7 +119,7 @@ class AudioPlayer(threading.Thread):
     
     def pause(self):
         if self.current_file is not None:
-            self.is_paused = True
+            self.is_paused = not self.is_paused
             self.communicate("pause")
     
     def stop(self):
