@@ -73,7 +73,7 @@ class AudioPlayer(threading.Thread):
         self.set_volume(self.volume)
         try:
             self.on_queue = True
-            self.current_index = self.play_queue.index(new_file)
+            #self.current_index = self.play_queue.index(new_file)
         except ValueError:
             self.on_queue = False
     
@@ -171,7 +171,7 @@ class AudioPlayer(threading.Thread):
             del self.play_queue[index]
             self.save_queue()
             if index <= self.current_index and index > 0:
-                index -= 1
+                self.current_index -= 1
     
     def set_volume(self, volume):
         if volume < 0:
